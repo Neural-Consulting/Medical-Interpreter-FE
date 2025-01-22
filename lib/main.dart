@@ -9,7 +9,7 @@ void main() {
 }
 
 class TranslationApp extends StatelessWidget {
-  const TranslationApp({Key? key}) : super(key: key);
+  const TranslationApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +30,7 @@ class TranslationApp extends StatelessWidget {
 }
 
 class StartConversationScreen extends StatefulWidget {
-  const StartConversationScreen({Key? key}) : super(key: key);
+  const StartConversationScreen({super.key});
 
   @override
   _StartConversationScreenState createState() => _StartConversationScreenState();
@@ -39,7 +39,7 @@ class StartConversationScreen extends StatefulWidget {
 class _StartConversationScreenState extends State<StartConversationScreen> {
   String professionalLanguage = 'Danish';
   String patientLanguage = 'English';
-  final List<String> languages = ['Danish', 'English', 'Spanish', 'French', 'German', 'Chinese'];
+  final List<String> languages = ['Danish', 'English', 'German', 'Turkish', 'Arabic', 'Ukrainian', 'Persian', 'Romanian'];
   String? conversationId;
 
   Future<void> startConversation() async {

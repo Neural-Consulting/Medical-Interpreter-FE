@@ -1,5 +1,5 @@
-import 'dart:io';
-
+//import 'dart:ffi';
+//import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_sound/flutter_sound.dart';
 import 'package:http/http.dart' as http;
@@ -15,11 +15,11 @@ class ConversationScreen extends StatefulWidget {
   final String patientLanguage;
 
   const ConversationScreen({
-    Key? key,
+    super.key,
     required this.conversationId,
     required this.professionalLanguage,
     required this.patientLanguage,
-  }) : super(key: key);
+  });
 
   @override
   _ConversationScreenState createState() => _ConversationScreenState();
@@ -27,10 +27,12 @@ class ConversationScreen extends StatefulWidget {
 
 class _ConversationScreenState extends State<ConversationScreen> {
   final FlutterSoundRecorder _recorder = FlutterSoundRecorder();
+  final FlutterSoundPlayer _audioPlayer = FlutterSoundPlayer();
   Uint8List? audioBytes;
   bool isRecording = false;
   bool isListeningOverlayVisible = false;
   bool isLoading = false;
+  bool isPlaying = false;
   String? activeButton;
   final List<Map<String, String>> conversationHistory = [];
   final ScrollController _scrollController = ScrollController();
@@ -40,6 +42,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
   @override
   void initState() {
     super.initState();
+    _audioPlayer.openPlayer();
   }
 
   @override
@@ -61,7 +64,6 @@ class _ConversationScreenState extends State<ConversationScreen> {
       if (stream != null) {
         _mediaRecorder = html.MediaRecorder(stream, {'mimeType': 'audio/webm'});
         _audioChunks = [];
-
         _mediaRecorder?.addEventListener('dataavailable', (event) {
           final blobEvent = event as html.BlobEvent;
           if (blobEvent.data != null) {
@@ -101,6 +103,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
             setState(() {
               isRecording = false;
               isListeningOverlayVisible = false;
+              isPlaying = false;
               activeButton = null;
               isLoading = true;
             });
@@ -129,6 +132,20 @@ class _ConversationScreenState extends State<ConversationScreen> {
                   'id': DateTime.now().toString(),
                 });
               });
+              
+              final audioResponse = base64Decode(responseData['audio']);  // Decoding the response's audio
+              setState(() {
+                isPlaying = true;
+              });
+
+              var samplingRate = responseData['audio_sampling_rate'];
+              if (samplingRate == null){
+                debugPrint("The specified sampling rate is null!! Defaulting to 24000");
+                samplingRate = 24000;
+              }
+
+              await _playAudio(audioResponse, samplingRate);
+              //await _playAudio(audioResponse);
 
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 _scrollController.animateTo(
@@ -151,6 +168,28 @@ class _ConversationScreenState extends State<ConversationScreen> {
           isLoading = false;
         });
       }
+    }
+  }
+  Future<void> _playAudio(Uint8List audioBytes, int samplingRate) async {
+    try {
+      
+      if (audioBytes.isEmpty) {
+        debugPrint("No audio bytes received.");
+        return;
+      }
+
+      await _audioPlayer.startPlayer(
+        fromDataBuffer: audioBytes,
+        codec: Codec.pcm16,
+        sampleRate: samplingRate,
+        whenFinished: () {
+          setState(() {
+            isPlaying = false;
+          });
+        },
+      );
+    } catch (e) {
+      debugPrint("Error playing audio: $e");
     }
   }
 

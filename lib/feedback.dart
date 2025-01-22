@@ -5,7 +5,7 @@ import 'dart:convert';
 class FeedbackScreen extends StatefulWidget {
   final String conversationId;
 
-  const FeedbackScreen({Key? key, required this.conversationId}) : super(key: key);
+  const FeedbackScreen({super.key, required this.conversationId});
 
   @override
   _FeedbackScreenState createState() => _FeedbackScreenState();
